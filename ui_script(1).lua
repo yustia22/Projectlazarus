@@ -1,6 +1,6 @@
 --[[
     PROJECT LAZARUS : ZOMBIES HUB  v5
-    Built on lates-lib by lxte
+    Built on Rayfield UI by Sirius
 ]]
 
 --// ══════════════════════════════════════
@@ -28,46 +28,24 @@ local function GetRootPart()  local c=GetCharacter(); return c and c:FindFirstCh
 --// ══════════════════════════════════════
 --//  LOAD LIBRARY
 --// ══════════════════════════════════════
-local Library = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/lxte/lates-lib/main/Main.lua"
-))() 
+local Rayfield = loadstring(game:HttpGet(
+    "https://sirius.menu/rayfield"
+))()
 
 
 --//  MAIN UI
 --// ══════════════════════════════════════════════════════════
 local RoundNum = Workspace:FindFirstChild("RoundNum") or { Value = 1 }
 
-local Themes = {
-    Light = {
-        Primary=Color3.fromRGB(232,232,232), Secondary=Color3.fromRGB(255,255,255),
-        Component=Color3.fromRGB(245,245,245), Interactables=Color3.fromRGB(235,235,235),
-        Tab=Color3.fromRGB(50,50,50), Title=Color3.fromRGB(0,0,0),
-        Description=Color3.fromRGB(100,100,100), Shadow=Color3.fromRGB(255,255,255),
-        Outline=Color3.fromRGB(210,210,210), Icon=Color3.fromRGB(100,100,100),
-    },
-    Dark = {
-        Primary=Color3.fromRGB(30,30,30), Secondary=Color3.fromRGB(35,35,35),
-        Component=Color3.fromRGB(40,40,40), Interactables=Color3.fromRGB(45,45,45),
-        Tab=Color3.fromRGB(200,200,200), Title=Color3.fromRGB(240,240,240),
-        Description=Color3.fromRGB(200,200,200), Shadow=Color3.fromRGB(0,0,0),
-        Outline=Color3.fromRGB(40,40,40), Icon=Color3.fromRGB(220,220,220),
-    },
-    Void = {
-        Primary=Color3.fromRGB(15,15,15), Secondary=Color3.fromRGB(20,20,20),
-        Component=Color3.fromRGB(25,25,25), Interactables=Color3.fromRGB(30,30,30),
-        Tab=Color3.fromRGB(200,200,200), Title=Color3.fromRGB(240,240,240),
-        Description=Color3.fromRGB(200,200,200), Shadow=Color3.fromRGB(0,0,0),
-        Outline=Color3.fromRGB(40,40,40), Icon=Color3.fromRGB(220,220,220),
-    },
-}
 
-local Window = Library:CreateWindow({
-    Title           = "PL Zombies Hub  v5",
-    Size            = UDim2.fromOffset(590, 390),
-    Transparency    = 0.2,
-    MinimizeKeybind = Enum.KeyCode.LeftAlt,
+
+local Window = Rayfield:CreateWindow({
+    Name             = "PL Zombies Hub  v5",
+    LoadingTitle     = "PL Zombies Hub",
+    LoadingSubtitle  = "by darkyscript",
+    ConfigurationSaving = { Enabled = false },
+    KeySystem        = false,
 })
-Window:SetTheme(Themes.Dark)
 
 --// ══════════════════════════════════════
 --//  STATE
@@ -353,19 +331,19 @@ local function GetPoints(amount)
     amount = amount or 1000
     local remote, root = FindDamageRemote()
     if not remote then
-        Window:Notify({ Title="No Damage Remote", Description="No alive zombies with Damage remote found.", Duration=5 })
+        Rayfield:Notify({ Title="No Damage Remote", Description="No alive zombies with Damage remote found.", Duration=5 })
         return
     end
     local key = GetDamageKey()
     local iters = math.floor(amount / 10)
-    Window:Notify({ Title="Farming Points...", Description="Firing "..iters.."x → +"..iters*10 .." pts", Duration=3 })
+    Rayfield:Notify({ Title="Farming Points...", Description="Firing "..iters.."x → +"..iters*10 .." pts", Duration=3 })
     for i = 1, iters do
         pcall(function()
             remote:FireServer({ Source=root.Position, Slash=true, Damage=0 }, key)
         end)
         if i % 10 == 0 then task.wait() end
     end
-    Window:Notify({ Title="Done!", Description="+"..iters*10 .." pts farmed!", Duration=5 })
+    Rayfield:Notify({ Title="Done!", Description="+"..iters*10 .." pts farmed!", Duration=5 })
 end
 
 --// ══════════════════════════════════════
@@ -594,160 +572,244 @@ SetupBackpack()
 
 
 
---//  UI — TAB SECTIONS
+--//  UI — RAYFIELD TABS
 --// ══════════════════════════════════════
-Window:AddTabSection({ Name="Main",    Order=0 })
-Window:AddTabSection({ Name="Lazarus",  Order=1 })
-Window:AddTabSection({ Name="Player",   Order=2 })
-Window:AddTabSection({ Name="Settings", Order=3 })
 
---// ════════════════════════════
---//  TAB: MAIN (credits)
---// ════════════════════════════
-local MT = Window:AddTab({ Title="Main", Section="Main", Icon="rbxassetid://11963373994" })
-
-Window:AddSection({ Name="Welcome", Tab=MT })
-Window:AddParagraph({
-    Title="PL Zombies Hub",
-    Description="A feature-rich hub for Project Lazarus: Zombies. Use responsibly.",
-    Tab=MT,
+-- ── MAIN TAB ────────────────────────────
+local MT = Window:CreateTab("Main", 4483362458)
+local CredSec = MT:CreateSection("Credits")
+MT:CreateParagraph({
+    Title   = "PL Zombies Hub v5",
+    Content = "Script by darkyscript\nGame: Project Lazarus: Zombies (ID 443406476)\nDev: Logitech101",
 })
-Window:AddParagraph({
-    Title="Game",
-    Description="Project Lazarus: Zombies\nGame ID: 443406476\nDeveloped by: Logitech101",
-    Tab=MT,
+MT:CreateParagraph({
+    Title   = "Built with",
+    Content = "Rayfield UI by Sirius",
 })
 
-Window:AddSection({ Name="Credits", Tab=MT })
-Window:AddParagraph({
-    Title="Script by",
-    Description="darkyscript",
-    Tab=MT,
-})
-Window:AddParagraph({
-    Title="Built with",
-    Description="lates-lib UI by lxte\ngithub.com/lxte/lates-lib",
-    Tab=MT,
+-- ── PROJECT LAZARUS TAB ─────────────────
+local LT = Window:CreateTab("Project Lazarus", 4483362458)
+
+LT:CreateSection("Status")
+LT:CreateParagraph({
+    Title   = "Protection Active",
+    Content = "gcinfo spoofed · rawset() patches · smart HP formula · deepcopy backup · all pcall wrapped",
 })
 
-
-
---// ════════════════════════════
---//  TAB: PROJECT LAZARUS
---// ════════════════════════════
-local LT = Window:AddTab({ Title="Project Lazarus", Section="Lazarus", Icon="rbxassetid://11963373994" })
-
-Window:AddSection({ Name="Status", Tab=LT })
-Window:AddParagraph({
-    Title="Protection Active ✓",
-    Description="gcinfo spoofed · rawset() patches · smart HP formula · deepcopy backup · all pcall wrapped · Heartbeat speed enforcer",
-    Tab=LT,
+LT:CreateSection("Gun Mods")
+LT:CreateToggle({
+    Name        = "Infinite Ammo",
+    CurrentValue= false,
+    Flag        = "InfAmmo",
+    Callback    = function(v) State.InfAmmoEnabled = v end,
+})
+LT:CreateToggle({
+    Name        = "Insta Kill  [Protected]",
+    CurrentValue= false,
+    Flag        = "InstaKill",
+    Callback    = function(v)
+        State.InstaKillEnabled = v
+        if v then
+            Rayfield:Notify({ Title="Insta Kill ON", Description="Round "..(RoundNum.Value or 1).." → "..GetSmartDamage().." DMG", Duration=4 })
+        end
+    end,
+})
+LT:CreateToggle({
+    Name        = "No Recoil",
+    CurrentValue= false,
+    Flag        = "NoRecoil",
+    Callback    = function(v) State.NoRecoilEnabled = v end,
+})
+LT:CreateToggle({
+    Name        = "No Spread",
+    CurrentValue= false,
+    Flag        = "NoSpread",
+    Callback    = function(v) State.NoSpreadEnabled = v end,
 })
 
-Window:AddSection({ Name="Gun Mods", Tab=LT })
-Window:AddToggle({ Title="Infinite Ammo", Description="rawset() sets all ammo/magsize keys to 9999 every frame", Tab=LT,
-    Callback=function(v) State.InfAmmoEnabled=v end })
-Window:AddToggle({ Title="Insta Kill  [Protected]", Description="Sends real zombie HP + 10% buffer — not a flat hack value", Tab=LT,
-    Callback=function(v)
-        State.InstaKillEnabled=v
-        if v then Window:Notify({ Title="Insta Kill ON", Description="Round "..(RoundNum.Value or 1).." → "..GetSmartDamage().." DMG", Duration=4 }) end
-    end })
-Window:AddToggle({ Title="No Recoil", Description="rawset ViewKick to zero", Tab=LT,
-    Callback=function(v) State.NoRecoilEnabled=v end })
-Window:AddToggle({ Title="No Spread", Description="rawset all Spread keys to zero", Tab=LT,
-    Callback=function(v) State.NoSpreadEnabled=v end })
-
-Window:AddSection({ Name="Kill Aura", Tab=LT })
-Window:AddToggle({ Title="Kill Aura", Description="Fires Humanoid.Damage remote with live damage_key — earns points", Tab=LT,
-    Callback=function(v) State.KillAuraEnabled=v; if v then StartKillAura() else StopKillAura() end end })
-Window:AddSlider({ Title="Kill Aura Range", Description="Studs (default 40)", Tab=LT, MaxValue=250, Default=40, AllowDecimals=false,
-    Callback=function(v) State.KillAuraRange=v end })
-
-Window:AddSection({ Name="Utility", Tab=LT })
-Window:AddToggle({ Title="Freeze Zombies", Description="Anchors HRP + WalkSpeed=0 every frame — truly stops all zombies", Tab=LT,
-    Callback=function(v) if v then StartFreeze() else StopFreeze() end end })
-Window:AddToggle({ Title="Auto Fortify", Description="Fires ProximityPrompts + [F] for +10pts per plank", Tab=LT,
-    Callback=function(v) State.AutoFortEnabled=v; if v then StartAutoFort() else StopAutoFort() end end })
-Window:AddSlider({ Title="Fortify Range", Description="Search radius (studs)", Tab=LT, MaxValue=60, Default=20, AllowDecimals=false,
-    Callback=function(v) State.AutoFortRange=v end })
-
-Window:AddSection({ Name="Visuals", Tab=LT })
-Window:AddToggle({ Title="Zombie ESP", Description="Red highlight on all zombies — visible through walls (AlwaysOnTop)", Tab=LT,
-    Callback=function(v) if v then EnableESP() else DisableESP() end end })
-
-Window:AddSection({ Name="Points Farm", Tab=LT })
-Window:AddParagraph({
-    Title="How it works",
-    Description="Fires Damage remote with Damage=0. Each fire = +10pts. No kill needed. Requires 1 zombie alive.",
-    Tab=LT,
+LT:CreateSection("Kill Aura")
+LT:CreateToggle({
+    Name        = "Kill Aura",
+    CurrentValue= false,
+    Flag        = "KillAura",
+    Callback    = function(v)
+        State.KillAuraEnabled = v
+        if v then StartKillAura() else StopKillAura() end
+    end,
 })
-Window:AddSlider({ Title="Points Amount", Description="How many points to farm (max 1,000,000)", Tab=LT,
-    MaxValue=1000000, Default=1000, AllowDecimals=false,
-    Callback=function(v) State.PointsAmount = v end })
-Window:AddButton({ Title="Farm Points Now", Description="Click to get points instantly", Tab=LT,
-    Callback=function()
-        task.spawn(function()
-            GetPoints(State.PointsAmount or 1000)
-        end)
-    end })
+LT:CreateSlider({
+    Name        = "Kill Aura Range",
+    Range       = {10, 250},
+    Increment   = 1,
+    Suffix      = " studs",
+    CurrentValue= 40,
+    Flag        = "KillAuraRange",
+    Callback    = function(v) State.KillAuraRange = v end,
+})
 
---// ════════════════════════════
---//  TAB: PLAYER
---// ════════════════════════════
-local PT = Window:AddTab({ Title="Player", Section="Player", Icon="rbxassetid://11293977610" })
+LT:CreateSection("Utility")
+LT:CreateToggle({
+    Name        = "Freeze Zombies",
+    CurrentValue= false,
+    Flag        = "FreezeZombies",
+    Callback    = function(v)
+        if v then StartFreeze() else StopFreeze() end
+    end,
+})
+LT:CreateToggle({
+    Name        = "Auto Fortify",
+    CurrentValue= false,
+    Flag        = "AutoFortify",
+    Callback    = function(v)
+        State.AutoFortEnabled = v
+        if v then StartAutoFort() else StopAutoFort() end
+    end,
+})
+LT:CreateSlider({
+    Name        = "Fortify Range",
+    Range       = {5, 60},
+    Increment   = 1,
+    Suffix      = " studs",
+    CurrentValue= 20,
+    Flag        = "FortifyRange",
+    Callback    = function(v) State.AutoFortRange = v end,
+})
 
-Window:AddSection({ Name="Movement", Tab=PT })
-Window:AddToggle({ Title="Speed Hack", Description="Server sees 16 via __index spoof", Tab=PT,
-    Callback=function(v) State.SpeedEnabled=v; ApplySpeed(v and State.SpeedValue or 16) end })
-Window:AddSlider({ Title="Walk Speed", Description="Default: 16", Tab=PT, MaxValue=250, Default=16, AllowDecimals=false,
-    Callback=function(v) State.SpeedValue=v; if State.SpeedEnabled then ApplySpeed(v) end end })
-Window:AddToggle({ Title="Jump Hack", Description="Server sees 50 via __index spoof", Tab=PT,
-    Callback=function(v) State.JumpEnabled=v; ApplyJump(v and State.JumpValue or 50) end })
-Window:AddSlider({ Title="Jump Power", Description="Default: 50", Tab=PT, MaxValue=500, Default=50, AllowDecimals=false,
-    Callback=function(v) State.JumpValue=v; if State.JumpEnabled then ApplyJump(v) end end })
-Window:AddToggle({ Title="Infinite Jump", Description="Re-jump while mid-air", Tab=PT,
-    Callback=function(v) State.InfiniteJump=v end })
+LT:CreateSection("Visuals")
+LT:CreateToggle({
+    Name        = "Zombie ESP",
+    CurrentValue= false,
+    Flag        = "ZombieESP",
+    Callback    = function(v)
+        if v then EnableESP() else DisableESP() end
+    end,
+})
 
-Window:AddSection({ Name="Utility", Tab=PT })
-Window:AddToggle({ Title="Noclip", Description="Walk through all walls", Tab=PT,
-    Callback=function(v) State.NoclipEnabled=v; if v then StartNoclip() else StopNoclip() end end })
-Window:AddToggle({ Title="Fly", Description="WASD + Space/Ctrl — uses LinearVelocity", Tab=PT,
-    Callback=function(v) State.FlyEnabled=v; if v then StartFly() else StopFly() end end })
-Window:AddSlider({ Title="Fly Speed", Description="Default: 50", Tab=PT, MaxValue=200, Default=50, AllowDecimals=false,
-    Callback=function(v) State.FlySpeed=v end })
-Window:AddButton({ Title="Reset Stats", Description="WalkSpeed=16, JumpPower=50", Tab=PT,
-    Callback=function()
-        local h=GetHumanoid(); if h then h.WalkSpeed=16; h.JumpPower=50 end
-        State.SpeedEnabled=false; State.JumpEnabled=false
-        Window:Notify({ Title="Stats Reset", Description="Defaults restored.", Duration=3 })
-    end })
+LT:CreateSection("Points Farm")
+LT:CreateParagraph({
+    Title   = "How it works",
+    Content = "Fires Damage remote with Damage=0. Each fire = +10pts. Requires 1 zombie alive.",
+})
+LT:CreateSlider({
+    Name        = "Points Amount",
+    Range       = {10, 1000000},
+    Increment   = 10,
+    Suffix      = " pts",
+    CurrentValue= 1000,
+    Flag        = "PointsAmount",
+    Callback    = function(v) State.PointsAmount = v end,
+})
+LT:CreateButton({
+    Name     = "Farm Points Now",
+    Callback = function()
+        task.spawn(FarmPoints)
+    end,
+})
 
-UserInputService.JumpRequest:Connect(function()
-    if State.InfiniteJump then
-        local h=GetHumanoid(); if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-    end
-end)
+-- ── PLAYER TAB ──────────────────────────
+local PT = Window:CreateTab("Player", 4483362458)
 
---// ════════════════════════════
---//  TAB: SETTINGS
---// ════════════════════════════
-local ST = Window:AddTab({ Title="Settings", Section="Settings", Icon="rbxassetid://11293977610" })
+PT:CreateSection("Movement")
+PT:CreateToggle({
+    Name        = "Speed Hack",
+    CurrentValue= false,
+    Flag        = "SpeedHack",
+    Callback    = function(v)
+        State.SpeedEnabled = v
+        ApplySpeed(v and State.SpeedValue or 16)
+    end,
+})
+PT:CreateSlider({
+    Name        = "Walk Speed",
+    Range       = {16, 250},
+    Increment   = 1,
+    CurrentValue= 16,
+    Flag        = "WalkSpeed",
+    Callback    = function(v)
+        State.SpeedValue = v
+        if State.SpeedEnabled then ApplySpeed(v) end
+    end,
+})
+PT:CreateToggle({
+    Name        = "Jump Hack",
+    CurrentValue= false,
+    Flag        = "JumpHack",
+    Callback    = function(v)
+        State.JumpEnabled = v
+        ApplyJump(v and State.JumpValue or 50)
+    end,
+})
+PT:CreateSlider({
+    Name        = "Jump Power",
+    Range       = {50, 500},
+    Increment   = 1,
+    CurrentValue= 50,
+    Flag        = "JumpPower",
+    Callback    = function(v)
+        State.JumpValue = v
+        if State.JumpEnabled then ApplyJump(v) end
+    end,
+})
+PT:CreateToggle({
+    Name        = "Infinite Jump",
+    CurrentValue= false,
+    Flag        = "InfiniteJump",
+    Callback    = function(v) State.InfiniteJump = v end,
+})
 
-Window:AddSection({ Name="UI", Tab=ST })
-Window:AddKeybind({ Title="Minimize Keybind", Description="Default: Left Alt", Tab=ST,
-    Callback=function(k) Window:SetSetting("Keybind",k) end })
-Window:AddDropdown({ Title="Theme", Tab=ST,
-    Options={ ["Light Mode"]="Light", ["Dark Mode"]="Dark", ["Extra Dark"]="Void" },
-    Callback=function(t) Window:SetTheme(Themes[t]) end })
-Window:AddToggle({ Title="UI Blur", Description="Requires graphics level 8+", Default=true, Tab=ST,
-    Callback=function(v) Window:SetSetting("Blur",v) end })
-Window:AddSlider({ Title="UI Transparency", Description="0=solid · 1=invisible", Tab=ST, AllowDecimals=true, MaxValue=1,
-    Callback=function(v) Window:SetSetting("Transparency",v) end })
+PT:CreateSection("Utility")
+PT:CreateToggle({
+    Name        = "Noclip",
+    CurrentValue= false,
+    Flag        = "Noclip",
+    Callback    = function(v)
+        State.NoclipEnabled = v
+        if v then StartNoclip() else StopNoclip() end
+    end,
+})
+PT:CreateToggle({
+    Name        = "Fly  [WASD + Space/Ctrl]",
+    CurrentValue= false,
+    Flag        = "Fly",
+    Callback    = function(v)
+        State.FlyEnabled = v
+        if v then StartFly() else StopFly() end
+    end,
+})
+PT:CreateSlider({
+    Name        = "Fly Speed",
+    Range       = {10, 200},
+    Increment   = 1,
+    CurrentValue= 50,
+    Flag        = "FlySpeed",
+    Callback    = function(v) State.FlySpeed = v end,
+})
+PT:CreateButton({
+    Name     = "Reset Stats",
+    Callback = function()
+        local h = GetHumanoid()
+        if h then
+            pcall(function() rawset(h,"WalkSpeed",16); rawset(h,"JumpPower",50) end)
+        end
+        State.SpeedEnabled = false; State.JumpEnabled = false
+    end,
+})
 
---// ══════════════════════════════════════
+-- ── SETTINGS TAB ────────────────────────
+local ST = Window:CreateTab("Settings", 4483362458)
+
+ST:CreateSection("Keybind")
+ST:CreateKeybind({
+    Name         = "Minimize Keybind",
+    CurrentKeybind = "LeftAlt",
+    HoldToInteract = false,
+    Flag         = "MinimizeKey",
+    Callback     = function(k) end,
+})
+
 --//  DONE
 --// ══════════════════════════════════════
-Window:Notify({
+Rayfield:Notify({
     Title       = "PL Hub v5 Ready",
     Description = "All bypasses active. Left Alt = minimise.",
     Duration    = 5,
@@ -756,7 +818,7 @@ Window:Notify({
 --// ══════════════════════════════════════
 --//  SAFE PROTECTION
 --//  hookmetamethod(__index) is NOT used —
---//  it intercepts lates-lib's own internal
+--//  it was intercepting the old UI lib internal
 --//  property reads and breaks all callbacks.
 --//  Instead we use a simple Heartbeat loop
 --//  to keep applying speed/jump every frame.
