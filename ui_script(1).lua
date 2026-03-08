@@ -9,14 +9,21 @@
 -- Always destroy old instance so re-executing always works
 getgenv().PLHubLoaded = true
 pcall(function()
-    local old = game:GetService("CoreGui"):FindFirstChild("PLZombiesHub")
-    if old then old:Destroy() end
+    local Players = game:GetService("Players")
+    local lp = Players.LocalPlayer
+    local gui = lp and lp:FindFirstChild("PlayerGui")
+    if gui then
+        local old = gui:FindFirstChild("PLZombiesHub")
+        if old then old:Destroy() end
+    end
+    local cg = game:GetService("CoreGui")
+    local old2 = cg:FindFirstChild("PLZombiesHub")
+    if old2 then old2:Destroy() end
 end)
 
 --// ══════════════════════════════════════
 --//  CORE SERVICES (needed by GUI)
 --// ══════════════════════════════════════
-local CoreGui          = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local RunService       = game:GetService("RunService")
 
@@ -29,7 +36,25 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "PLZombiesHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-pcall(function() ScreenGui.Parent = CoreGui end)
+ScreenGui.DisplayOrder = 999
+-- Use PlayerGui first (works on all executors), fall back to CoreGui
+local _guiParented = false
+pcall(function()
+    local lp = game:GetService("Players").LocalPlayer
+    if lp and lp:FindFirstChild("PlayerGui") then
+        ScreenGui.Parent = lp.PlayerGui
+        _guiParented = true
+    end
+end)
+if not _guiParented then
+    pcall(function()
+        ScreenGui.Parent = game:GetService("CoreGui")
+        _guiParented = true
+    end)
+end
+if not _guiParented then
+    ScreenGui.Parent = game:GetService("Players").LocalPlayer.PlayerGui
+end
 
 -- ── COLOURS ──────────────────────────────
 local COL_BG     = Color3.fromRGB(18,18,23)
@@ -533,7 +558,10 @@ local function Notify(title, desc, duration)
         local sg = Instance.new("ScreenGui")
         sg.Name = "PLNotif"; sg.ResetOnSpawn = false
         sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        pcall(function() sg.Parent = CoreGui end)
+        pcall(function()
+            local lp = game:GetService("Players").LocalPlayer
+            sg.Parent = (lp and lp:FindFirstChild("PlayerGui")) or game:GetService("CoreGui")
+        end)
 
         local frame = Instance.new("Frame", sg)
         frame.Size = UDim2.new(0,280,0,64)
