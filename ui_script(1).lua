@@ -1,6 +1,6 @@
 --[[
     PROJECT LAZARUS : ZOMBIES HUB  v5
-    Built on Rayfield UI by Sirius
+    Pure Roblox GUI — works on every executor
 ]]
 
 --// ══════════════════════════════════════
@@ -28,24 +28,64 @@ local function GetRootPart()  local c=GetCharacter(); return c and c:FindFirstCh
 --// ══════════════════════════════════════
 --//  LOAD LIBRARY
 --// ══════════════════════════════════════
-local Rayfield = loadstring(game:HttpGet(
-    "https://sirius.menu/rayfield"
-))()
+--// ══════════════════════════════════════
+--//  PURE ROBLOX GUI  (no external library)
+--//  Works on every executor — zero HTTP
+--// ══════════════════════════════════════
+
+-- Tiny notification helper (top-right corner, auto-fades)
+local function Notify(title, desc, duration)
+    duration = duration or 4
+    pcall(function()
+        local sg = Instance.new("ScreenGui")
+        sg.Name = "PLNotif"; sg.ResetOnSpawn = false
+        sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        pcall(function() sg.Parent = CoreGui end)
+
+        local frame = Instance.new("Frame", sg)
+        frame.Size = UDim2.new(0,280,0,64)
+        frame.Position = UDim2.new(1,-296,0,12)
+        frame.BackgroundColor3 = Color3.fromRGB(22,22,28)
+        frame.BorderSizePixel = 0
+        Instance.new("UICorner",frame).CornerRadius = UDim.new(0,8)
+
+        local accent = Instance.new("Frame", frame)
+        accent.Size = UDim2.new(0,4,1,0)
+        accent.BackgroundColor3 = Color3.fromRGB(200,50,50)
+        accent.BorderSizePixel = 0
+        Instance.new("UICorner",accent).CornerRadius = UDim.new(0,4)
+
+        local t = Instance.new("TextLabel", frame)
+        t.Size = UDim2.new(1,-14,0,22)
+        t.Position = UDim2.new(0,10,0,6)
+        t.BackgroundTransparency = 1
+        t.TextColor3 = Color3.fromRGB(240,240,240)
+        t.TextXAlignment = Enum.TextXAlignment.Left
+        t.Font = Enum.Font.GothamBold
+        t.TextSize = 13
+        t.Text = title
+
+        local d = Instance.new("TextLabel", frame)
+        d.Size = UDim2.new(1,-14,0,20)
+        d.Position = UDim2.new(0,10,0,30)
+        d.BackgroundTransparency = 1
+        d.TextColor3 = Color3.fromRGB(180,180,180)
+        d.TextXAlignment = Enum.TextXAlignment.Left
+        d.Font = Enum.Font.Gotham
+        d.TextSize = 11
+        d.TextWrapped = true
+        d.Text = desc
+
+        task.delay(duration, function()
+            if sg and sg.Parent then sg:Destroy() end
+        end)
+    end)
+end
 
 
---//  MAIN UI
---// ══════════════════════════════════════════════════════════
-local RoundNum = Workspace:FindFirstChild("RoundNum") or { Value = 1 }
 
 
 
-local Window = Rayfield:CreateWindow({
-    Name             = "PL Zombies Hub  v5",
-    LoadingTitle     = "PL Zombies Hub",
-    LoadingSubtitle  = "by darkyscript",
-    ConfigurationSaving = { Enabled = false },
-    KeySystem        = false,
-})
 
 --// ══════════════════════════════════════
 --//  STATE
@@ -331,19 +371,19 @@ local function GetPoints(amount)
     amount = amount or 1000
     local remote, root = FindDamageRemote()
     if not remote then
-        Rayfield:Notify({ Title="No Damage Remote", Description="No alive zombies with Damage remote found.", Duration=5 })
+        Notify("No Damage Remote", "No alive zombies with Damage remote found.", 5)
         return
     end
     local key = GetDamageKey()
     local iters = math.floor(amount / 10)
-    Rayfield:Notify({ Title="Farming Points...", Description="Firing "..iters.."x → +"..iters*10 .." pts", Duration=3 })
+    Notify("Farming Points...", "Firing ", 3)
     for i = 1, iters do
         pcall(function()
             remote:FireServer({ Source=root.Position, Slash=true, Damage=0 }, key)
         end)
         if i % 10 == 0 then task.wait() end
     end
-    Rayfield:Notify({ Title="Done!", Description="+"..iters*10 .." pts farmed!", Duration=5 })
+    Notify("Done!", "+", 5)
 end
 
 --// ══════════════════════════════════════
@@ -572,248 +612,495 @@ SetupBackpack()
 
 
 
---//  UI — RAYFIELD TABS
+--// ══════════════════════════════════════
+--//  GUI CONSTRUCTION
+--//  Pure ScreenGui — no external lib needed
 --// ══════════════════════════════════════
 
--- ── MAIN TAB ────────────────────────────
-local MT = Window:CreateTab("Main", 4483362458)
-local CredSec = MT:CreateSection("Credits")
-MT:CreateParagraph({
-    Title   = "PL Zombies Hub v5",
-    Content = "Script by darkyscript\nGame: Project Lazarus: Zombies (ID 443406476)\nDev: Logitech101",
-})
-MT:CreateParagraph({
-    Title   = "Built with",
-    Content = "Rayfield UI by Sirius",
-})
+-- Destroy old instance if re-executing
+local oldGui = CoreGui:FindFirstChild("PLZombiesHub")
+if oldGui then oldGui:Destroy() end
 
--- ── PROJECT LAZARUS TAB ─────────────────
-local LT = Window:CreateTab("Project Lazarus", 4483362458)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PLZombiesHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() ScreenGui.Parent = CoreGui end)
 
-LT:CreateSection("Status")
-LT:CreateParagraph({
-    Title   = "Protection Active",
-    Content = "gcinfo spoofed · rawset() patches · smart HP formula · deepcopy backup · all pcall wrapped",
-})
+-- ── COLOURS ──────────────────────────────
+local COL_BG     = Color3.fromRGB(18,18,23)
+local COL_SIDE   = Color3.fromRGB(24,24,30)
+local COL_PANEL  = Color3.fromRGB(28,28,36)
+local COL_ITEM   = Color3.fromRGB(34,34,44)
+local COL_ACCENT = Color3.fromRGB(200,50,50)
+local COL_TEXT   = Color3.fromRGB(235,235,235)
+local COL_SUB    = Color3.fromRGB(160,160,170)
+local COL_ON     = Color3.fromRGB(80,200,100)
+local COL_OFF    = Color3.fromRGB(90,90,100)
 
-LT:CreateSection("Gun Mods")
-LT:CreateToggle({
-    Name        = "Infinite Ammo",
-    CurrentValue= false,
-    Flag        = "InfAmmo",
-    Callback    = function(v) State.InfAmmoEnabled = v end,
-})
-LT:CreateToggle({
-    Name        = "Insta Kill  [Protected]",
-    CurrentValue= false,
-    Flag        = "InstaKill",
-    Callback    = function(v)
-        State.InstaKillEnabled = v
-        if v then
-            Rayfield:Notify({ Title="Insta Kill ON", Description="Round "..(RoundNum.Value or 1).." → "..GetSmartDamage().." DMG", Duration=4 })
+-- ── HELPERS ──────────────────────────────
+local function corner(parent, r)
+    local c = Instance.new("UICorner", parent)
+    c.CornerRadius = UDim.new(0, r or 6)
+    return c
+end
+local function padding(parent, px)
+    local p = Instance.new("UIPadding", parent)
+    p.PaddingLeft   = UDim.new(0, px)
+    p.PaddingRight  = UDim.new(0, px)
+    p.PaddingTop    = UDim.new(0, px)
+    p.PaddingBottom = UDim.new(0, px)
+end
+local function label(parent, text, size, col, bold, xalign)
+    local l = Instance.new("TextLabel", parent)
+    l.BackgroundTransparency = 1
+    l.TextColor3 = col or COL_TEXT
+    l.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
+    l.TextSize = size or 13
+    l.Text = text
+    l.TextXAlignment = xalign or Enum.TextXAlignment.Left
+    l.TextWrapped = true
+    return l
+end
+
+-- ── MAIN WINDOW ──────────────────────────
+local Win = Instance.new("Frame", ScreenGui)
+Win.Name = "Window"
+Win.Size = UDim2.new(0, 560, 0, 400)
+Win.Position = UDim2.new(0.5, -280, 0.5, -200)
+Win.BackgroundColor3 = COL_BG
+Win.BorderSizePixel = 0
+Win.Active = true
+Win.Draggable = true
+corner(Win, 10)
+
+-- Drop shadow
+local shadow = Instance.new("ImageLabel", Win)
+shadow.Size = UDim2.new(1,30,1,30)
+shadow.Position = UDim2.new(0,-15,0,-15)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://5028857084"
+shadow.ImageColor3 = Color3.fromRGB(0,0,0)
+shadow.ImageTransparency = 0.55
+shadow.ZIndex = 0
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(24,24,276,276)
+
+-- Title bar
+local TitleBar = Instance.new("Frame", Win)
+TitleBar.Size = UDim2.new(1,0,0,38)
+TitleBar.BackgroundColor3 = COL_SIDE
+TitleBar.BorderSizePixel = 0
+corner(TitleBar, 10)
+-- square off bottom corners
+local sq = Instance.new("Frame", TitleBar)
+sq.Size = UDim2.new(1,0,0.5,0)
+sq.Position = UDim2.new(0,0,0.5,0)
+sq.BackgroundColor3 = COL_SIDE
+sq.BorderSizePixel = 0
+
+local titleL = label(TitleBar, "PL Zombies Hub  v5", 14, COL_TEXT, true)
+titleL.Size = UDim2.new(1,-80,1,0)
+titleL.Position = UDim2.new(0,14,0,0)
+
+-- Version badge
+local badge = Instance.new("TextLabel", TitleBar)
+badge.Size = UDim2.new(0,60,0,20)
+badge.Position = UDim2.new(1,-74,0.5,-10)
+badge.BackgroundColor3 = COL_ACCENT
+badge.TextColor3 = COL_TEXT
+badge.Font = Enum.Font.GothamBold
+badge.TextSize = 10
+badge.Text = "ACTIVE"
+badge.BorderSizePixel = 0
+corner(badge, 4)
+
+-- Close button
+local CloseBtn = Instance.new("TextButton", TitleBar)
+CloseBtn.Size = UDim2.new(0,26,0,26)
+CloseBtn.Position = UDim2.new(1,-32,0.5,-13)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180,50,50)
+CloseBtn.TextColor3 = COL_TEXT
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 14
+CloseBtn.Text = "×"
+CloseBtn.BorderSizePixel = 0
+corner(CloseBtn, 5)
+CloseBtn.MouseButton1Click:Connect(function()
+    Win.Visible = not Win.Visible
+end)
+
+-- Minimize keybind (Left Alt)
+UserInputService.InputBegan:Connect(function(inp, gpe)
+    if gpe then return end
+    if inp.KeyCode == Enum.KeyCode.LeftAlt then
+        Win.Visible = not Win.Visible
+    end
+end)
+
+-- ── SIDEBAR (tabs) ────────────────────────
+local Sidebar = Instance.new("Frame", Win)
+Sidebar.Size = UDim2.new(0,120,1,-38)
+Sidebar.Position = UDim2.new(0,0,0,38)
+Sidebar.BackgroundColor3 = COL_SIDE
+Sidebar.BorderSizePixel = 0
+corner(Sidebar, 10)
+local sideSqTop = Instance.new("Frame", Sidebar)
+sideSqTop.Size = UDim2.new(1,0,0,10)
+sideSqTop.BackgroundColor3 = COL_SIDE
+sideSqTop.BorderSizePixel = 0
+local sideSqRight = Instance.new("Frame", Sidebar)
+sideSqRight.Size = UDim2.new(0,10,1,0)
+sideSqRight.Position = UDim2.new(1,-10,0,0)
+sideSqRight.BackgroundColor3 = COL_SIDE
+sideSqRight.BorderSizePixel = 0
+
+local TabList = Instance.new("Frame", Sidebar)
+TabList.Size = UDim2.new(1,0,1,-10)
+TabList.Position = UDim2.new(0,0,0,10)
+TabList.BackgroundTransparency = 1
+local tabLayout = Instance.new("UIListLayout", TabList)
+tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabLayout.Padding = UDim.new(0,2)
+
+-- ── CONTENT AREA ─────────────────────────
+local Content = Instance.new("Frame", Win)
+Content.Size = UDim2.new(1,-126,1,-44)
+Content.Position = UDim2.new(0,123,0,41)
+Content.BackgroundColor3 = COL_PANEL
+Content.BorderSizePixel = 0
+corner(Content, 8)
+
+-- ── TAB / TOGGLE / SLIDER BUILDERS ───────
+local AllTabs = {}
+local ActiveTab = nil
+
+local function MakeTab(name)
+    -- Sidebar button
+    local btn = Instance.new("TextButton", TabList)
+    btn.Size = UDim2.new(1,-8,0,32)
+    btn.Position = UDim2.new(0,4,0,0)
+    btn.BackgroundColor3 = COL_ITEM
+    btn.TextColor3 = COL_SUB
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 12
+    btn.Text = name
+    btn.BorderSizePixel = 0
+    corner(btn, 5)
+    local accent_bar = Instance.new("Frame", btn)
+    accent_bar.Size = UDim2.new(0,3,0.6,0)
+    accent_bar.Position = UDim2.new(0,0,0.2,0)
+    accent_bar.BackgroundColor3 = COL_ACCENT
+    accent_bar.BorderSizePixel = 0
+    accent_bar.Visible = false
+    corner(accent_bar, 2)
+
+    -- Scroll frame for content
+    local scroll = Instance.new("ScrollingFrame", Content)
+    scroll.Size = UDim2.new(1,0,1,0)
+    scroll.BackgroundTransparency = 1
+    scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 3
+    scroll.ScrollBarImageColor3 = COL_ACCENT
+    scroll.CanvasSize = UDim2.new(0,0,0,0)
+    scroll.Visible = false
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    local layout = Instance.new("UIListLayout", scroll)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0,4)
+    padding(scroll, 8)
+
+    local tab = { btn=btn, scroll=scroll, bar=accent_bar, order=0 }
+
+    btn.MouseButton1Click:Connect(function()
+        for _, t in pairs(AllTabs) do
+            t.scroll.Visible = false
+            t.btn.TextColor3 = COL_SUB
+            t.btn.BackgroundColor3 = COL_ITEM
+            t.bar.Visible = false
         end
-    end,
-})
-LT:CreateToggle({
-    Name        = "No Recoil",
-    CurrentValue= false,
-    Flag        = "NoRecoil",
-    Callback    = function(v) State.NoRecoilEnabled = v end,
-})
-LT:CreateToggle({
-    Name        = "No Spread",
-    CurrentValue= false,
-    Flag        = "NoSpread",
-    Callback    = function(v) State.NoSpreadEnabled = v end,
-})
+        scroll.Visible = true
+        btn.TextColor3 = COL_TEXT
+        btn.BackgroundColor3 = Color3.fromRGB(40,40,52)
+        accent_bar.Visible = true
+        ActiveTab = tab
+    end)
 
-LT:CreateSection("Kill Aura")
-LT:CreateToggle({
-    Name        = "Kill Aura",
-    CurrentValue= false,
-    Flag        = "KillAura",
-    Callback    = function(v)
-        State.KillAuraEnabled = v
-        if v then StartKillAura() else StopKillAura() end
-    end,
-})
-LT:CreateSlider({
-    Name        = "Kill Aura Range",
-    Range       = {10, 250},
-    Increment   = 1,
-    Suffix      = " studs",
-    CurrentValue= 40,
-    Flag        = "KillAuraRange",
-    Callback    = function(v) State.KillAuraRange = v end,
-})
+    AllTabs[name] = tab
+    return tab
+end
 
-LT:CreateSection("Utility")
-LT:CreateToggle({
-    Name        = "Freeze Zombies",
-    CurrentValue= false,
-    Flag        = "FreezeZombies",
-    Callback    = function(v)
-        if v then StartFreeze() else StopFreeze() end
-    end,
-})
-LT:CreateToggle({
-    Name        = "Auto Fortify",
-    CurrentValue= false,
-    Flag        = "AutoFortify",
-    Callback    = function(v)
-        State.AutoFortEnabled = v
-        if v then StartAutoFort() else StopAutoFort() end
-    end,
-})
-LT:CreateSlider({
-    Name        = "Fortify Range",
-    Range       = {5, 60},
-    Increment   = 1,
-    Suffix      = " studs",
-    CurrentValue= 20,
-    Flag        = "FortifyRange",
-    Callback    = function(v) State.AutoFortRange = v end,
-})
+local function MakeSection(tab, name)
+    tab.order = tab.order + 1
+    local f = Instance.new("Frame", tab.scroll)
+    f.Size = UDim2.new(1,-4,0,24)
+    f.BackgroundTransparency = 1
+    f.LayoutOrder = tab.order
+    local l = label(f, "— "..name, 11, COL_ACCENT, true)
+    l.Size = UDim2.new(1,0,1,0)
+    l.Position = UDim2.new(0,0,0,0)
+end
 
-LT:CreateSection("Visuals")
-LT:CreateToggle({
-    Name        = "Zombie ESP",
-    CurrentValue= false,
-    Flag        = "ZombieESP",
-    Callback    = function(v)
-        if v then EnableESP() else DisableESP() end
-    end,
-})
+local function MakeItem(tab, height)
+    tab.order = tab.order + 1
+    local f = Instance.new("Frame", tab.scroll)
+    f.Size = UDim2.new(1,-4, 0, height or 36)
+    f.BackgroundColor3 = COL_ITEM
+    f.BorderSizePixel = 0
+    f.LayoutOrder = tab.order
+    corner(f, 6)
+    return f
+end
 
-LT:CreateSection("Points Farm")
-LT:CreateParagraph({
-    Title   = "How it works",
-    Content = "Fires Damage remote with Damage=0. Each fire = +10pts. Requires 1 zombie alive.",
-})
-LT:CreateSlider({
-    Name        = "Points Amount",
-    Range       = {10, 1000000},
-    Increment   = 10,
-    Suffix      = " pts",
-    CurrentValue= 1000,
-    Flag        = "PointsAmount",
-    Callback    = function(v) State.PointsAmount = v end,
-})
-LT:CreateButton({
-    Name     = "Farm Points Now",
-    Callback = function()
-        task.spawn(FarmPoints)
-    end,
-})
+local function MakeToggle(tab, name, desc, callback)
+    local f = MakeItem(tab, desc and 44 or 36)
+    local n = label(f, name, 12, COL_TEXT, true)
+    n.Size = UDim2.new(1,-52,0,18)
+    n.Position = UDim2.new(0,10,0,desc and 6 or 9)
+    if desc then
+        local d = label(f, desc, 10, COL_SUB)
+        d.Size = UDim2.new(1,-52,0,14)
+        d.Position = UDim2.new(0,10,0,24)
+    end
+    -- Toggle pill
+    local pill = Instance.new("Frame", f)
+    pill.Size = UDim2.new(0,38,0,20)
+    pill.Position = UDim2.new(1,-48,0.5,-10)
+    pill.BackgroundColor3 = COL_OFF
+    pill.BorderSizePixel = 0
+    corner(pill, 10)
+    local knob = Instance.new("Frame", pill)
+    knob.Size = UDim2.new(0,16,0,16)
+    knob.Position = UDim2.new(0,2,0.5,-8)
+    knob.BackgroundColor3 = Color3.fromRGB(220,220,220)
+    knob.BorderSizePixel = 0
+    corner(knob, 8)
 
--- ── PLAYER TAB ──────────────────────────
-local PT = Window:CreateTab("Player", 4483362458)
-
-PT:CreateSection("Movement")
-PT:CreateToggle({
-    Name        = "Speed Hack",
-    CurrentValue= false,
-    Flag        = "SpeedHack",
-    Callback    = function(v)
-        State.SpeedEnabled = v
-        ApplySpeed(v and State.SpeedValue or 16)
-    end,
-})
-PT:CreateSlider({
-    Name        = "Walk Speed",
-    Range       = {16, 250},
-    Increment   = 1,
-    CurrentValue= 16,
-    Flag        = "WalkSpeed",
-    Callback    = function(v)
-        State.SpeedValue = v
-        if State.SpeedEnabled then ApplySpeed(v) end
-    end,
-})
-PT:CreateToggle({
-    Name        = "Jump Hack",
-    CurrentValue= false,
-    Flag        = "JumpHack",
-    Callback    = function(v)
-        State.JumpEnabled = v
-        ApplyJump(v and State.JumpValue or 50)
-    end,
-})
-PT:CreateSlider({
-    Name        = "Jump Power",
-    Range       = {50, 500},
-    Increment   = 1,
-    CurrentValue= 50,
-    Flag        = "JumpPower",
-    Callback    = function(v)
-        State.JumpValue = v
-        if State.JumpEnabled then ApplyJump(v) end
-    end,
-})
-PT:CreateToggle({
-    Name        = "Infinite Jump",
-    CurrentValue= false,
-    Flag        = "InfiniteJump",
-    Callback    = function(v) State.InfiniteJump = v end,
-})
-
-PT:CreateSection("Utility")
-PT:CreateToggle({
-    Name        = "Noclip",
-    CurrentValue= false,
-    Flag        = "Noclip",
-    Callback    = function(v)
-        State.NoclipEnabled = v
-        if v then StartNoclip() else StopNoclip() end
-    end,
-})
-PT:CreateToggle({
-    Name        = "Fly  [WASD + Space/Ctrl]",
-    CurrentValue= false,
-    Flag        = "Fly",
-    Callback    = function(v)
-        State.FlyEnabled = v
-        if v then StartFly() else StopFly() end
-    end,
-})
-PT:CreateSlider({
-    Name        = "Fly Speed",
-    Range       = {10, 200},
-    Increment   = 1,
-    CurrentValue= 50,
-    Flag        = "FlySpeed",
-    Callback    = function(v) State.FlySpeed = v end,
-})
-PT:CreateButton({
-    Name     = "Reset Stats",
-    Callback = function()
-        local h = GetHumanoid()
-        if h then
-            pcall(function() rawset(h,"WalkSpeed",16); rawset(h,"JumpPower",50) end)
+    local state = false
+    local btn = Instance.new("TextButton", f)
+    btn.Size = UDim2.new(1,0,1,0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        if state then
+            pill.BackgroundColor3 = COL_ON
+            knob.Position = UDim2.new(1,-18,0.5,-8)
+        else
+            pill.BackgroundColor3 = COL_OFF
+            knob.Position = UDim2.new(0,2,0.5,-8)
         end
-        State.SpeedEnabled = false; State.JumpEnabled = false
-    end,
-})
+        pcall(callback, state)
+    end)
+    return { SetValue = function(v)
+        state = v
+        if v then pill.BackgroundColor3=COL_ON; knob.Position=UDim2.new(1,-18,0.5,-8)
+        else pill.BackgroundColor3=COL_OFF; knob.Position=UDim2.new(0,2,0.5,-8) end
+    end }
+end
 
--- ── SETTINGS TAB ────────────────────────
-local ST = Window:CreateTab("Settings", 4483362458)
+local function MakeSlider(tab, name, min, max, default, suffix, callback)
+    local f = MakeItem(tab, 52)
+    local topL = label(f, name, 12, COL_TEXT, true)
+    topL.Size = UDim2.new(0.7,0,0,18)
+    topL.Position = UDim2.new(0,10,0,6)
+    local valL = label(f, tostring(default)..(suffix or ""), 12, COL_ACCENT, true, Enum.TextXAlignment.Right)
+    valL.Size = UDim2.new(0.28,0,0,18)
+    valL.Position = UDim2.new(0.72,-10,0,6)
 
-ST:CreateSection("Keybind")
-ST:CreateKeybind({
-    Name         = "Minimize Keybind",
-    CurrentKeybind = "LeftAlt",
-    HoldToInteract = false,
-    Flag         = "MinimizeKey",
-    Callback     = function(k) end,
-})
+    local track = Instance.new("Frame", f)
+    track.Size = UDim2.new(1,-20,0,6)
+    track.Position = UDim2.new(0,10,0,32)
+    track.BackgroundColor3 = Color3.fromRGB(50,50,62)
+    track.BorderSizePixel = 0
+    corner(track, 3)
+    local fill = Instance.new("Frame", track)
+    fill.Size = UDim2.new((default-min)/(max-min),0,1,0)
+    fill.BackgroundColor3 = COL_ACCENT
+    fill.BorderSizePixel = 0
+    corner(fill, 3)
+    local knob = Instance.new("Frame", track)
+    knob.Size = UDim2.new(0,12,0,12)
+    knob.AnchorPoint = Vector2.new(0.5,0.5)
+    knob.Position = UDim2.new((default-min)/(max-min),0,0.5,0)
+    knob.BackgroundColor3 = Color3.fromRGB(230,230,230)
+    knob.BorderSizePixel = 0
+    corner(knob, 6)
+
+    local dragging = false
+    local function update(x)
+        local abs = track.AbsolutePosition.X
+        local w   = track.AbsoluteSize.X
+        local pct = math.clamp((x - abs) / w, 0, 1)
+        local val = math.floor(min + (max-min)*pct)
+        fill.Size = UDim2.new(pct,0,1,0)
+        knob.Position = UDim2.new(pct,0,0.5,0)
+        valL.Text = tostring(val)..(suffix or "")
+        pcall(callback, val)
+    end
+
+    local ib = Instance.new("TextButton", track)
+    ib.Size = UDim2.new(1,0,3,0)
+    ib.Position = UDim2.new(0,0,-1,0)
+    ib.BackgroundTransparency = 1
+    ib.Text = ""
+    ib.MouseButton1Down:Connect(function() dragging=true end)
+    UserInputService.InputChanged:Connect(function(inp)
+        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            update(inp.Position.X)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(inp)
+        if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging=false end
+    end)
+    ib.MouseButton1Click:Connect(function()
+        local mouse = UserInputService:GetMouseLocation()
+        update(mouse.X)
+    end)
+end
+
+local function MakeButton(tab, name, desc, callback)
+    local f = MakeItem(tab, 36)
+    local btn = Instance.new("TextButton", f)
+    btn.Size = UDim2.new(1,0,1,0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    local n = label(f, name, 12, COL_TEXT, true)
+    n.Size = UDim2.new(1,-20,1,0)
+    n.Position = UDim2.new(0,10,0,0)
+    n.TextXAlignment = Enum.TextXAlignment.Left
+    local arr = label(f, "›", 16, COL_ACCENT, true, Enum.TextXAlignment.Right)
+    arr.Size = UDim2.new(0,20,1,0)
+    arr.Position = UDim2.new(1,-24,0,0)
+    btn.MouseButton1Click:Connect(function() pcall(callback) end)
+    btn.MouseEnter:Connect(function() f.BackgroundColor3 = Color3.fromRGB(44,44,56) end)
+    btn.MouseLeave:Connect(function() f.BackgroundColor3 = COL_ITEM end)
+end
+
+local function MakeParagraph(tab, title, content)
+    local lines = math.ceil(#content / 55) + 1
+    local h = 28 + lines * 14
+    local f = MakeItem(tab, h)
+    f.BackgroundColor3 = Color3.fromRGB(26,26,34)
+    local t = label(f, title, 12, COL_TEXT, true)
+    t.Size = UDim2.new(1,-16,0,18)
+    t.Position = UDim2.new(0,8,0,6)
+    local d = label(f, content, 11, COL_SUB)
+    d.Size = UDim2.new(1,-16,0,lines*14)
+    d.Position = UDim2.new(0,8,0,22)
+end
+
+-- ── BUILD TABS ────────────────────────────
+
+-- MAIN
+local MT = MakeTab("Main")
+MakeSection(MT, "Credits")
+MakeParagraph(MT, "PL Zombies Hub v5", "Script by darkyscript")
+MakeParagraph(MT, "Game", "Project Lazarus: Zombies
+Game ID: 443406476 | Dev: Logitech101")
+MakeParagraph(MT, "UI", "Pure Roblox GUI — works on every executor")
+
+-- PROJECT LAZARUS
+local LT = MakeTab("PL Zombies")
+MakeSection(LT, "Status")
+MakeParagraph(LT, "Protection Active", "gcinfo spoofed · rawset patches · smart HP · deepcopy backup")
+
+MakeSection(LT, "Gun Mods")
+MakeToggle(LT, "Infinite Ammo", "Sets all ammo keys to 99 every frame", function(v) State.InfAmmoEnabled=v end)
+MakeToggle(LT, "Insta Kill  [Protected]", "Real zombie HP + 10% buffer", function(v)
+    State.InstaKillEnabled=v
+    if v then Notify("Insta Kill ON","Round "..(RoundNum.Value or 1).." → "..GetSmartDamage().." DMG") end
+end)
+MakeToggle(LT, "No Recoil", "Zeros all ViewKick/Recoil tables", function(v) State.NoRecoilEnabled=v end)
+MakeToggle(LT, "No Spread", "Zeros all Spread/Bloom tables", function(v) State.NoSpreadEnabled=v end)
+
+MakeSection(LT, "Kill Aura")
+MakeToggle(LT, "Kill Aura", "Fires Damage remote — earns points", function(v)
+    State.KillAuraEnabled=v
+    if v then StartKillAura() else StopKillAura() end
+end)
+MakeSlider(LT, "Kill Aura Range", 10, 250, 40, " studs", function(v) State.KillAuraRange=v end)
+
+MakeSection(LT, "Utility")
+MakeToggle(LT, "Freeze Zombies", "Anchors + WalkSpeed=0 every frame", function(v)
+    if v then StartFreeze() else StopFreeze() end
+end)
+MakeToggle(LT, "Auto Fortify", "Fires prompts + F key for pts/plank", function(v)
+    State.AutoFortEnabled=v
+    if v then StartAutoFort() else StopAutoFort() end
+end)
+MakeSlider(LT, "Fortify Range", 5, 60, 20, " studs", function(v) State.AutoFortRange=v end)
+
+MakeSection(LT, "Visuals")
+MakeToggle(LT, "Zombie ESP", "Red highlight through walls", function(v)
+    if v then EnableESP() else DisableESP() end
+end)
+
+MakeSection(LT, "Points Farm")
+MakeParagraph(LT, "How it works", "Fires Damage=0 remote. Each fire = +10pts. Needs 1 zombie alive.")
+MakeSlider(LT, "Points Amount", 10, 1000000, 1000, " pts", function(v) State.PointsAmount=v end)
+MakeButton(LT, "Farm Points Now", nil, function() task.spawn(FarmPoints) end)
+
+-- PLAYER
+local PT = MakeTab("Player")
+MakeSection(PT, "Movement")
+MakeToggle(PT, "Speed Hack", "rawset WalkSpeed every frame", function(v)
+    State.SpeedEnabled=v
+    ApplySpeed(v and State.SpeedValue or 16)
+end)
+MakeSlider(PT, "Walk Speed", 16, 250, 16, " studs/s", function(v)
+    State.SpeedValue=v
+    if State.SpeedEnabled then ApplySpeed(v) end
+end)
+MakeToggle(PT, "Jump Hack", "rawset JumpPower every frame", function(v)
+    State.JumpEnabled=v
+    ApplyJump(v and State.JumpValue or 50)
+end)
+MakeSlider(PT, "Jump Power", 50, 500, 50, "", function(v)
+    State.JumpValue=v
+    if State.JumpEnabled then ApplyJump(v) end
+end)
+MakeToggle(PT, "Infinite Jump", "Re-jump while mid-air", function(v) State.InfiniteJump=v end)
+
+MakeSection(PT, "Utility")
+MakeToggle(PT, "Noclip", "Walk through all walls", function(v)
+    State.NoclipEnabled=v
+    if v then StartNoclip() else StopNoclip() end
+end)
+MakeToggle(PT, "Fly  [WASD+Space/Ctrl]", "LinearVelocity-based fly", function(v)
+    State.FlyEnabled=v
+    if v then StartFly() else StopFly() end
+end)
+MakeSlider(PT, "Fly Speed", 10, 200, 50, " studs/s", function(v) State.FlySpeed=v end)
+MakeButton(PT, "Reset Stats", nil, function()
+    local h=GetHumanoid()
+    if h then pcall(function() rawset(h,"WalkSpeed",16); rawset(h,"JumpPower",50) end) end
+    State.SpeedEnabled=false; State.JumpEnabled=false
+end)
+
+-- SETTINGS
+local ST = MakeTab("Settings")
+MakeSection(ST, "Keybind")
+MakeParagraph(ST, "Minimize Keybind", "Press Left Alt to show/hide the window")
+MakeSection(ST, "Info")
+MakeParagraph(ST, "Executor Support", "Pure Roblox GUI — no external library\nWorks on Velocity, KRNL, Fluxus, Synapse X, Delta, Arceus X and all others")
+
+-- Activate first tab
+AllTabs["Main"].btn:Fire("MouseButton1Click")
+-- Fallback in case Fire isn't supported
+local firstTab = AllTabs["Main"]
+if firstTab then
+    firstTab.scroll.Visible = true
+    firstTab.btn.TextColor3 = COL_TEXT
+    firstTab.btn.BackgroundColor3 = Color3.fromRGB(40,40,52)
+    firstTab.bar.Visible = true
+end
+
+Notify("PL Hub v5 Ready", "All bypasses active. Left Alt = show/hide", 5)
 
 --//  DONE
 --// ══════════════════════════════════════
-Rayfield:Notify({
-    Title       = "PL Hub v5 Ready",
-    Description = "All bypasses active. Left Alt = minimise.",
-    Duration    = 5,
-})
+Notify("PL Hub v5 Ready", "All bypasses active. Left Alt = minimise.", 5)
 
 --// ══════════════════════════════════════
 --//  SAFE PROTECTION
